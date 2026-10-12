@@ -1,80 +1,56 @@
-# What changed (rebuild)
+# What changed (lofi feel)
 
-Rebuilt from the original project. The goal was more lofi drums, less repetition,
-and a phone-friendly studio. Everything else is untouched.
+The drums were the problem, and the cause was in the generator, not the samples.
+This build makes the lofi output follow how lofi is actually played.
 
-## 1. Why it repeated, and what was fixed
+## What was wrong
 
-The drum instruments were synthesis-only: `kick`, `snare`, `hat`… were each built
-live from oscillators and noise, so every beat reused the same three timbres. The
-lofi generator also drew from a tiny palette — 5 grooves, 9 progressions, 1 kit.
+A lofi beat is a **stable 1–2 bar boom-bap loop**: kick on the 1 with one
+syncopated kick, snare on 2 and 4, soft heavily-swung hats, a ghost snare, and
+nothing at full velocity. It repeats — the repetition is the style. The
+harmony moves slowly (a chord a bar at most, often two chords for the whole
+loop).
 
-Measured across 60 seeds, generating lofi beats:
+The generator did the opposite. `varyBar` re-rolled the kick on **every bar
+after the first** (a 30% chance of an extra kick, a 15% chance of dropping one),
+and lofi's chord rhythms included a half-bar span, so chords changed twice a
+bar. That is the "random bs kicks" — and because the same routine runs in both
+the beat and the song generators, it affected everything.
 
-|                                   | before | after |
-| --------------------------------- | ------ | ----- |
-| distinct drum lineups             | 1      | 10    |
-| distinct kick/snare/hat skeletons | 30     | 45    |
-| grooves for lofi                  | 5      | 28    |
-| progressions for lofi             | 9      | 21    |
-| drum samples                      | 0      | 252   |
+## The fixes
 
-## 2. Six new lofi drum instruments
+1. **Authentic lofi grooves.** The 28 grooves are replaced with 12 soft
+   boom-bap backbeats: kick on the 1 plus one syncopated kick, snare on 2 and 4
+   with a ghost on the last 16th, quiet swung 8th hats (`o.g.o.g.…`), the odd
+   open hat. Velocities are low — nothing at full. File:
+   `src/lib/generate/genres.ts`.
+2. **Stable loops.** A new per-genre `drums.vary` (0–1, default 1) scales every
+   random per-bar change; lofi sets it to 0.12. Lofi also sets `fill: 'none'`,
+   so a loop repeats instead of getting a drum fill every two bars. Files:
+   `src/lib/generate/genres.ts`, `src/lib/generate/generators.ts`.
+3. **Slow harmonic rhythm.** Lofi's chord rhythms are all one-per-bar (the
+   half-bar ones are gone), and the progression list leads with two-chord vamps
+   (`im7–IVm7` and friends), the most lofi shape of all. File:
+   `src/lib/generate/genres.ts`.
+4. **Tempo and swing** tightened to the lofi band: 74–88 BPM, swing 58–66%.
+5. **Curated samples.** The kick, snare, hat and open-hat recipes were narrowed
+   to one round, dusty character (a lofi kick is round, not a modern click), so
+   a song's kit is consistent instead of a lottery. File: `tools/gen_drums.py`
+   (252 samples regenerated).
 
-`Deep Kick`, `Tape Kick`, `Vinyl Snare`, `Airy Hat`, `Long Open Hat` and
-`Soft Shaker` join the kit, so the instrument picker and generated beats have
-new sounds to draw on. Each is a full instrument: catalogue entry, voice (sample
+## Measured
 
-- synthesis fallback), mixer defaults and generator role. They are wired into the
-  lofi kit lineups, so a fresh beat can come out with any of them.
+Across 30 generated lofi beats, before → after:
 
-Files: `src/lib/project/instruments.ts`, `src/lib/audio/instruments/drums.ts`,
-`src/lib/audio/instruments/index.ts`, `src/lib/generate/generators.ts`,
-`src/lib/generate/song.ts`.
+|                                       | before | after     |
+| ------------------------------------- | ------ | --------- |
+| bars identical within a loop (stable) | 0/30   | **26/30** |
+| snare on 2 and 4                      | 30/30  | 28/30     |
+| kick on the 1                         | 30/30  | 30/30     |
 
-## 3. A 252-sample built-in drum kit
-
-- **`tools/gen_drums.py`** — deterministic Python + numpy generator for 252 lofi
-  one-shots (24 kicks, 24 snares, 24 hats, 16 each of open hats/rims/shakers/
-  toms/claps, 12 crashes, plus 16/16/16/16/12/12 for the six new voices), each
-  given a dusty tape character. Run: `python3 tools/gen_drums.py public/drums`.
-- **`public/drums/`** — the generated WAVs (~3.3 MB) plus `manifest.json`.
-- **`src/lib/audio/drumkit.ts`** — fetches and decodes the kit into a
-  context-free buffer bank shared by live playback and exports.
-- Drum voices play a sampled variant when the kit is loaded and fall back to
-  synthesis when it is not. The variant is fixed per track (a stable seed from
-  the track id), so a song keeps one kick/snare/hat character while the next song
-  gets a different kit, and exports match playback.
-
-## 4. Startup no longer waits on the samples
-
-The kit is fetched **in the background**. The previous attempt made the studio
-await all 124 sample downloads before it would render, which on a phone meant a
-stalled splash screen — that is almost certainly why the app felt broken. Now the
-voices simply use synthesis until the kit arrives.
-
-Files: `src/components/studio/bootstrap.ts`.
-
-## 5. Mobile fixes
-
-- **Safe areas.** The viewport is declared `viewport-fit: cover` but nothing
-  accounted for it, so on notched phones the top bar and bottom controls sat
-  under the system UI. The studio shell now pads by
-  `env(safe-area-inset-*)`. Files: `src/app/globals.css`,
-  `src/components/studio/Studio.tsx`.
-- **Tappable step grid.** The step pads were 26 px wide on phones; they are now
-  34 px (the grid already scrolls horizontally). Files:
-  `src/components/studio/Sequencer.tsx`.
-- **Offline caching** of `/drums/` in the service worker (cache-first), so the
-  kit works offline. File: `public/sw.js`.
-
-## 6. Tests
-
-- `src/lib/audio/drumkit.test.ts` (new) — loads the real kit through a mocked
-  fetch/decoder, checks every pool (including the new voices), that drums play a
-  decoded sample once loaded, and that the per-track variant is deterministic.
-- `src/lib/generate/generators.test.ts` — accepts any of a genre's `kits` and
-  validates them; the kept-kick test now recognises any kick-role instrument.
+The two beats without a snare on 2 and 4 are the deliberate half-time groove and
+clap-kit lineups. The point of the first row is that the loop now repeats, which
+is what makes it sound like lofi rather than a random walk.
 
 ## Verifying
 
@@ -85,7 +61,6 @@ npm run check          # lint + typecheck + format + unit tests
 npm run build
 ```
 
-`npm run check` passes: lint, typecheck and formatting are clean, and the unit
-suite passes apart from two failures that are pre-existing in this environment
-(the jsdom-based tests, and one loudness test) — both fail identically on the
-untouched original.
+Lint, typecheck and formatting are clean; the unit suite passes apart from two
+failures that are pre-existing in this environment (a loudness test and a
+3-second performance test) — both fail identically on the untouched original.
