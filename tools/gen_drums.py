@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """
-Procedurally synthesise a large, license-clean lofi drum library.
+Procedurally synthesise the LofiLoop drum library.
 
 Every one-shot is generated from scratch with numpy (no scipy, no external
 audio), given a "dusty tape" character, and written as 16-bit mono WAV plus a
 manifest.json the web app reads at boot. Deterministic: a fixed master seed
 reproduces the exact same library.
+
+Folders are named after the instrument ids the app uses, so adding a new drum
+instrument is just a new entry in RECIPES.
 
 Usage:  python gen_drums.py <output_dir>
 """
@@ -105,15 +108,11 @@ def lofi_chain(x: np.ndarray, rng: np.random.Generator, *, drive=None, tone=None
     hiss = hiss if hiss is not None else rng.uniform(0.0, 0.012)
     hp = hp if hp is not None else rng.uniform(24, 45)
 
-    # tape saturation
-    x = np.tanh(x * drive) / np.tanh(drive)
-    # bit crush
-    levels = 2 ** (bits - 1)
+    x = np.tanh(x * drive) / np.tanh(drive)          # tape saturation
+    levels = 2 ** (bits - 1)                          # bit crush
     x = np.round(x * levels) / levels
-    # dusty top end + remove rumble
-    x = fft_filter(x, lowpass(tone))
-    x = fft_filter(x, highpass(hp))
-    # faint vinyl hiss
+    x = fft_filter(x, lowpass(tone))                  # dusty top end
+    x = fft_filter(x, highpass(hp))                   # remove rumble
     if hiss > 0:
         x = x + noise(len(x), rng) * hiss
     return declick(x)
@@ -122,49 +121,47 @@ def lofi_chain(x: np.ndarray, rng: np.random.Generator, *, drive=None, tone=None
 # --------------------------------------------------------------------------
 # Recipes — each returns a fresh one-shot for a variant
 
-def make_kick(rng):
-    f0 = rng.uniform(46, 60)
-    dur = rng.uniform(0.28, 0.5)
-    n = int(dur * SR)
-    f = f0 * (1 + (rng.uniform(2.5, 5.0) - 1) * np.exp(-t(n) / rng.uniform(0.02, 0.05)))
-    body = sine(f, n)
-    body *= exp_env(n, rng.uniform(0.09, 0.22), 0.002)
-    click = noise(int(0.006 * SR), rng)
-    click = fft_filter(click, highpass(rng.uniform(1500, 2600)))
-    click *= exp_env(len(click), 0.003) * rng.uniform(0.15, 0.5)
+def make_kick(rng, *, f_lo=46, f_hi=60, decay=(0.28, 0.5), tone=(1600, 3200),
+              drive=(1.6, 3.2), click=(0.15, 0.5), punch=(2.5, 5.0)):
+    f0 = rng.uniform(f_lo, f_hi)
+    n = int(rng.uniform(*decay) * SR)
+    f = f0 * (1 + (rng.uniform(*punch) - 1) * np.exp(-t(n) / rng.uniform(0.02, 0.05)))
+    body = sine(f, n) * exp_env(n, rng.uniform(0.09, 0.22), 0.002)
+    click_n = noise(int(0.006 * SR), rng)
+    click_n = fft_filter(click_n, highpass(rng.uniform(1500, 2600)))
+    click_n *= exp_env(len(click_n), 0.003) * rng.uniform(*click)
     x = body.copy()
-    x[: len(click)] += click
-    return lofi_chain(x, rng, drive=rng.uniform(1.6, 3.2), tone=rng.uniform(1600, 3200))
+    x[: len(click_n)] += click_n
+    return lofi_chain(x, rng, drive=rng.uniform(*drive), tone=rng.uniform(*tone))
 
 
-def make_snare(rng):
-    dur = rng.uniform(0.18, 0.32)
-    n = int(dur * SR)
-    tune = rng.uniform(175, 235)
-    tone = sine(tune, n) * 0.5 + sine(tune * 1.62, n) * 0.35
-    tone *= exp_env(n, rng.uniform(0.05, 0.1))
-    body = noise(n, rng)
-    body = fft_filter(body, bandpass(rng.uniform(1300, 2300), 1.0))
-    body *= exp_env(n, rng.uniform(0.09, 0.2))
-    x = tone * rng.uniform(0.4, 0.8) + body * rng.uniform(0.7, 1.1)
-    return lofi_chain(x, rng, drive=rng.uniform(1.1, 2.0), tone=rng.uniform(6500, 9500))
+def make_snare(rng, *, tune=(175, 235), decay=(0.18, 0.32), bp=(1300, 2300),
+               tone=(6500, 9500), drive=(1.1, 2.0), body_mix=(0.7, 1.1)):
+    n = int(rng.uniform(*decay) * SR)
+    f = rng.uniform(*tune)
+    tonev = sine(f, n) * 0.5 + sine(f * 1.62, n) * 0.35
+    tonev *= exp_env(n, rng.uniform(0.05, 0.1))
+    bodyn = fft_filter(noise(n, rng), bandpass(rng.uniform(*bp), 1.0))
+    bodyn *= exp_env(n, rng.uniform(0.09, 0.2))
+    x = tonev * rng.uniform(0.4, 0.8) + bodyn * rng.uniform(*body_mix)
+    return lofi_chain(x, rng, drive=rng.uniform(*drive), tone=rng.uniform(*tone))
 
 
-def make_hat(rng, open_=False):
-    dur = rng.uniform(0.22, 0.5) if open_ else rng.uniform(0.05, 0.12)
-    n = int(dur * SR)
+def make_hat(rng, open_=False, *, decay=None, band=(7000, 10000), tone=(9000, 12000)):
+    if decay is None:
+        decay = (0.22, 0.5) if open_ else (0.05, 0.12)
+    n = int(rng.uniform(*decay) * SR)
     base = rng.uniform(300, 420)
     metal = metallic(n, base, [2, 3, 4.16, 5.43, 6.79, 8.21], rng)
-    metal = fft_filter(metal, bandpass(rng.uniform(7000, 10000) if not open_ else rng.uniform(5500, 8000), 0.7))
+    metal = fft_filter(metal, bandpass(rng.uniform(*band), 0.7))
     hiss = fft_filter(noise(n, rng), highpass(rng.uniform(6000, 9000)))
     x = metal * rng.uniform(0.6, 1.0) + hiss * rng.uniform(0.4, 0.9)
     x *= exp_env(n, rng.uniform(0.16, 0.42) if open_ else rng.uniform(0.02, 0.05))
-    return lofi_chain(x, rng, drive=rng.uniform(0.8, 1.6), tone=rng.uniform(9000, 12000), hp=4000)
+    return lofi_chain(x, rng, drive=rng.uniform(0.8, 1.6), tone=rng.uniform(*tone), hp=4000)
 
 
 def make_rim(rng):
-    dur = rng.uniform(0.06, 0.13)
-    n = int(dur * SR)
+    n = int(rng.uniform(0.06, 0.13) * SR)
     tone = sine(rng.uniform(1500, 1900), n) * 0.5 + sine(rng.uniform(400, 520), n) * 0.4
     tone *= exp_env(n, rng.uniform(0.03, 0.06))
     tick = fft_filter(noise(n, rng), bandpass(rng.uniform(1500, 2600), 1.2))
@@ -173,21 +170,18 @@ def make_rim(rng):
     return lofi_chain(x, rng, drive=rng.uniform(0.8, 1.6), tone=rng.uniform(7000, 10000))
 
 
-def make_shaker(rng):
-    dur = rng.uniform(0.09, 0.2)
-    n = int(dur * SR)
-    x = fft_filter(noise(n, rng), highpass(rng.uniform(5000, 8500)))
-    env = exp_env(n, rng.uniform(0.05, 0.12), attack=rng.uniform(0.006, 0.02))
-    x *= env
-    return lofi_chain(x, rng, drive=rng.uniform(0.6, 1.2), tone=rng.uniform(9000, 12000), hp=3000)
+def make_shaker(rng, *, decay=(0.09, 0.2), hp=(5000, 8500), attack=(0.006, 0.02), tone=(9000, 12000)):
+    n = int(rng.uniform(*decay) * SR)
+    x = fft_filter(noise(n, rng), highpass(rng.uniform(*hp)))
+    x *= exp_env(n, rng.uniform(0.05, 0.12), attack=rng.uniform(*attack))
+    return lofi_chain(x, rng, drive=rng.uniform(0.6, 1.2), tone=rng.uniform(*tone), hp=3000)
 
 
-def make_tom(rng):
-    f0 = rng.uniform(90, 165)
-    dur = rng.uniform(0.2, 0.4)
-    n = int(dur * SR)
-    f = f0 * (1 + 0.35 * np.exp(-t(n) / 0.05))
-    body = sine(f, n) * exp_env(n, rng.uniform(0.12, 0.3), 0.003)
+def make_tom(rng, *, f=(90, 165), decay=(0.2, 0.4)):
+    f0 = rng.uniform(*f)
+    n = int(rng.uniform(*decay) * SR)
+    fr = f0 * (1 + 0.35 * np.exp(-t(n) / 0.05))
+    body = sine(fr, n) * exp_env(n, rng.uniform(0.12, 0.3), 0.003)
     attack = fft_filter(noise(int(0.01 * SR), rng), bandpass(rng.uniform(800, 1600), 1.0))
     attack *= exp_env(len(attack), 0.006) * rng.uniform(0.2, 0.5)
     x = body.copy()
@@ -196,12 +190,10 @@ def make_tom(rng):
 
 
 def make_clap(rng):
-    dur = rng.uniform(0.22, 0.34)
-    n = int(dur * SR)
+    n = int(rng.uniform(0.22, 0.34) * SR)
     spacing = rng.uniform(0.006, 0.014)
     x = np.zeros(n)
-    bursts = int(rng.integers(3, 5))
-    for i in range(bursts):
+    for i in range(int(rng.integers(3, 5))):
         start = int(i * spacing * SR)
         if start >= n:
             break
@@ -215,8 +207,7 @@ def make_clap(rng):
 
 
 def make_crash(rng):
-    dur = rng.uniform(0.6, 0.95)
-    n = int(dur * SR)
+    n = int(rng.uniform(0.6, 0.95) * SR)
     base = rng.uniform(280, 360)
     x = metallic(n, base, [2, 3, 4.16, 5.43, 6.79, 8.21], rng) * 0.7
     x += fft_filter(noise(n, rng), highpass(rng.uniform(4000, 7000))) * 0.6
@@ -224,16 +215,37 @@ def make_crash(rng):
     return lofi_chain(x, rng, drive=rng.uniform(0.8, 1.4), tone=rng.uniform(10000, 13000), hp=2500)
 
 
+# --------------------------------------------------------------------------
+# Catalogue. Keys are the app's instrument ids; counts control how many variants.
+
 RECIPES = {
-    "kick": (make_kick, 18),
-    "snare": (make_snare, 18),
-    "hat": (lambda r: make_hat(r, open_=False), 18),
-    "openhat": (lambda r: make_hat(r, open_=True), 12),
-    "rim": (make_rim, 12),
-    "shaker": (make_shaker, 12),
-    "tom": (make_tom, 12),
-    "clap": (make_clap, 12),
-    "crash": (make_crash, 10),
+    # --- the original kit -------------------------------------------------
+    "kick": (lambda r: make_kick(r), 24),
+    "snare": (lambda r: make_snare(r), 24),
+    "hat": (lambda r: make_hat(r, False), 24),
+    "openhat": (lambda r: make_hat(r, True), 16),
+    "rim": (make_rim, 16),
+    "shaker": (make_shaker, 16),
+    "tom": (make_tom, 16),
+    "clap": (make_clap, 16),
+    "crash": (make_crash, 12),
+    # --- new lofi drum voices --------------------------------------------
+    # Deep Kick: lower, longer, rounder
+    "kick2": (lambda r: make_kick(r, f_lo=34, f_hi=44, decay=(0.4, 0.75), tone=(1100, 2100),
+                                  drive=(1.3, 2.4), click=(0.05, 0.25), punch=(2.0, 3.4)), 16),
+    # Tape Kick: punchier and more saturated
+    "kick3": (lambda r: make_kick(r, f_lo=50, f_hi=64, decay=(0.22, 0.42), tone=(2200, 3600),
+                                  drive=(3.0, 5.0), click=(0.3, 0.7), punch=(3.0, 5.5)), 16),
+    # Vinyl Snare: darker, longer body
+    "snare2": (lambda r: make_snare(r, tune=(165, 215), decay=(0.24, 0.42), bp=(1000, 1800),
+                                    tone=(5000, 7500), drive=(1.6, 2.6), body_mix=(0.9, 1.3)), 16),
+    # Airy Hat: longer, brighter, more noise
+    "hat2": (lambda r: make_hat(r, False, decay=(0.08, 0.2), band=(8500, 12000), tone=(11000, 14000)), 16),
+    # Long Open Hat: washes
+    "openhat2": (lambda r: make_hat(r, True, decay=(0.55, 0.95), band=(5000, 8000), tone=(9000, 12000)), 12),
+    # Soft Shaker: darker, gentler
+    "shaker2": (lambda r: make_shaker(r, decay=(0.1, 0.22), hp=(3000, 5500), attack=(0.01, 0.03),
+                                      tone=(6500, 9500)), 12),
 }
 
 
@@ -249,7 +261,6 @@ def write_wav(path: str, x: np.ndarray) -> None:
 
 def main() -> None:
     out_dir = sys.argv[1] if len(sys.argv) > 1 else "public/drums"
-    rng = np.random.default_rng(0x10F1)
     manifest = {}
     total = 0
     bytes_total = 0
@@ -272,9 +283,9 @@ def main() -> None:
     with open(os.path.join(out_dir, "manifest.json"), "w") as f:
         json.dump(manifest, f, indent=2)
         f.write("\n")
-    print(f"wrote {total} samples, {bytes_total/1024/1024:.2f} MB to {out_dir}")
+    print(f"wrote {total} samples, {bytes_total / 1024 / 1024:.2f} MB to {out_dir}")
     for k, v in manifest.items():
-        print(f"  {k:8s} {len(v)}")
+        print(f"  {k:9s} {len(v)}")
 
 
 if __name__ == "__main__":
