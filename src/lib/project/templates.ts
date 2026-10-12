@@ -85,14 +85,14 @@ export function createDemoProject(): Project {
     params: { tone: 0.35, tremolo: 0.3 },
   });
   const bass = createTrack('bass', { volume: 0.74, reverb: 0 });
-  const bell = createTrack('bell', {
+  const wurli = createTrack('wurli', {
     volume: 0.6,
     pan: 0.25,
     reverb: 0.4,
     delay: 0.28,
     params: { tone: 0.4, decay: 1.6 },
   });
-  const tracks: Track[] = [kick, snare, hat, openhat, keys, bass, bell];
+  const tracks: Track[] = [kick, snare, hat, openhat, keys, bass, wurli];
 
   const project = createProject({
     name: 'Midnight Tape',
@@ -170,7 +170,7 @@ export function createDemoProject(): Project {
     [26, 0.7, A2, 3],
     [30, 0.6, F2, 2],
   ]);
-  a.steps[bell.id] = hits('bell', root, [
+  a.steps[wurli.id] = hits('wurli', root, [
     [2, 0.56, D5, 2],
     [5, 0.5, F5, 2],
     [8, 0.58, E5, 3],
@@ -208,7 +208,7 @@ export function createDemoProject(): Project {
     [16, 0.72, F2, 6],
     [22, 0.7, D2, 10],
   ]);
-  b.steps[bell.id] = hits('bell', root, [
+  b.steps[wurli.id] = hits('wurli', root, [
     [3, 0.5, F5, 3],
     [6, 0.46, G5, 2],
     [8, 0.52, E5, 4],
@@ -245,7 +245,7 @@ const SONG_TEMPLATES: (Omit<ProjectTemplate, 'kind' | 'create' | 'genre'> & { op
   {
     id: 'rainy-commute',
     name: 'Rainy Commute',
-    description: 'Lofi blended with jazz hop: walking bass, ninth chords, a bell and lead in conversation, and rain.',
+    description: 'Lofi blended with jazz hop: walking bass, ninth chords, a warm electric-piano melody and rain.',
     minutes: 2.5,
     options: {
       seed: 4,

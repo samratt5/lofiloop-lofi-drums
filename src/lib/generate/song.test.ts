@@ -436,6 +436,18 @@ describe('generateSong: options', () => {
     expect(bright.fx.crackle).toBeLessThan(dusty.fx.crackle);
   });
 
+  it('never puts a music-box bell in a default lofi song', () => {
+    // A bell reads as a toy, not as lofi: the lofi kit's melodic voice is an
+    // electric piano (or nylon guitar), never the music box.
+    for (let seed = 1; seed <= 12; seed++) {
+      const p = song('lofi', { seed });
+      expect(
+        p.tracks.some((t) => t.instrument === 'bell'),
+        `seed ${seed}`,
+      ).toBe(false);
+    }
+  });
+
   it('plays requested instruments and leaves out excluded ones', () => {
     const extras: InstrumentId[] = ['guitar', 'flute', 'strings', 'vox', '808', 'bell', 'pad', 'upright', 'wurli'];
     const fx: InstrumentId[] = ['riser', 'crash', 'tom', 'shaker'];
