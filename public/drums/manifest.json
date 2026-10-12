@@ -17,7 +17,13 @@
     "kick/15.wav",
     "kick/16.wav",
     "kick/17.wav",
-    "kick/18.wav"
+    "kick/18.wav",
+    "kick/19.wav",
+    "kick/20.wav",
+    "kick/21.wav",
+    "kick/22.wav",
+    "kick/23.wav",
+    "kick/24.wav"
   ],
   "snare": [
     "snare/01.wav",
@@ -37,7 +43,13 @@
     "snare/15.wav",
     "snare/16.wav",
     "snare/17.wav",
-    "snare/18.wav"
+    "snare/18.wav",
+    "snare/19.wav",
+    "snare/20.wav",
+    "snare/21.wav",
+    "snare/22.wav",
+    "snare/23.wav",
+    "snare/24.wav"
   ],
   "hat": [
     "hat/01.wav",
@@ -57,7 +69,13 @@
     "hat/15.wav",
     "hat/16.wav",
     "hat/17.wav",
-    "hat/18.wav"
+    "hat/18.wav",
+    "hat/19.wav",
+    "hat/20.wav",
+    "hat/21.wav",
+    "hat/22.wav",
+    "hat/23.wav",
+    "hat/24.wav"
   ],
   "openhat": [
     "openhat/01.wav",
@@ -71,7 +89,11 @@
     "openhat/09.wav",
     "openhat/10.wav",
     "openhat/11.wav",
-    "openhat/12.wav"
+    "openhat/12.wav",
+    "openhat/13.wav",
+    "openhat/14.wav",
+    "openhat/15.wav",
+    "openhat/16.wav"
   ],
   "rim": [
     "rim/01.wav",
@@ -85,7 +107,11 @@
     "rim/09.wav",
     "rim/10.wav",
     "rim/11.wav",
-    "rim/12.wav"
+    "rim/12.wav",
+    "rim/13.wav",
+    "rim/14.wav",
+    "rim/15.wav",
+    "rim/16.wav"
   ],
   "shaker": [
     "shaker/01.wav",
@@ -99,7 +125,11 @@
     "shaker/09.wav",
     "shaker/10.wav",
     "shaker/11.wav",
-    "shaker/12.wav"
+    "shaker/12.wav",
+    "shaker/13.wav",
+    "shaker/14.wav",
+    "shaker/15.wav",
+    "shaker/16.wav"
   ],
   "tom": [
     "tom/01.wav",
@@ -113,7 +143,11 @@
     "tom/09.wav",
     "tom/10.wav",
     "tom/11.wav",
-    "tom/12.wav"
+    "tom/12.wav",
+    "tom/13.wav",
+    "tom/14.wav",
+    "tom/15.wav",
+    "tom/16.wav"
   ],
   "clap": [
     "clap/01.wav",
@@ -127,7 +161,11 @@
     "clap/09.wav",
     "clap/10.wav",
     "clap/11.wav",
-    "clap/12.wav"
+    "clap/12.wav",
+    "clap/13.wav",
+    "clap/14.wav",
+    "clap/15.wav",
+    "clap/16.wav"
   ],
   "crash": [
     "crash/01.wav",
@@ -139,6 +177,108 @@
     "crash/07.wav",
     "crash/08.wav",
     "crash/09.wav",
-    "crash/10.wav"
+    "crash/10.wav",
+    "crash/11.wav",
+    "crash/12.wav"
+  ],
+  "kick2": [
+    "kick2/01.wav",
+    "kick2/02.wav",
+    "kick2/03.wav",
+    "kick2/04.wav",
+    "kick2/05.wav",
+    "kick2/06.wav",
+    "kick2/07.wav",
+    "kick2/08.wav",
+    "kick2/09.wav",
+    "kick2/10.wav",
+    "kick2/11.wav",
+    "kick2/12.wav",
+    "kick2/13.wav",
+    "kick2/14.wav",
+    "kick2/15.wav",
+    "kick2/16.wav"
+  ],
+  "kick3": [
+    "kick3/01.wav",
+    "kick3/02.wav",
+    "kick3/03.wav",
+    "kick3/04.wav",
+    "kick3/05.wav",
+    "kick3/06.wav",
+    "kick3/07.wav",
+    "kick3/08.wav",
+    "kick3/09.wav",
+    "kick3/10.wav",
+    "kick3/11.wav",
+    "kick3/12.wav",
+    "kick3/13.wav",
+    "kick3/14.wav",
+    "kick3/15.wav",
+    "kick3/16.wav"
+  ],
+  "snare2": [
+    "snare2/01.wav",
+    "snare2/02.wav",
+    "snare2/03.wav",
+    "snare2/04.wav",
+    "snare2/05.wav",
+    "snare2/06.wav",
+    "snare2/07.wav",
+    "snare2/08.wav",
+    "snare2/09.wav",
+    "snare2/10.wav",
+    "snare2/11.wav",
+    "snare2/12.wav",
+    "snare2/13.wav",
+    "snare2/14.wav",
+    "snare2/15.wav",
+    "snare2/16.wav"
+  ],
+  "hat2": [
+    "hat2/01.wav",
+    "hat2/02.wav",
+    "hat2/03.wav",
+    "hat2/04.wav",
+    "hat2/05.wav",
+    "hat2/06.wav",
+    "hat2/07.wav",
+    "hat2/08.wav",
+    "hat2/09.wav",
+    "hat2/10.wav",
+    "hat2/11.wav",
+    "hat2/12.wav",
+    "hat2/13.wav",
+    "hat2/14.wav",
+    "hat2/15.wav",
+    "hat2/16.wav"
+  ],
+  "openhat2": [
+    "openhat2/01.wav",
+    "openhat2/02.wav",
+    "openhat2/03.wav",
+    "openhat2/04.wav",
+    "openhat2/05.wav",
+    "openhat2/06.wav",
+    "openhat2/07.wav",
+    "openhat2/08.wav",
+    "openhat2/09.wav",
+    "openhat2/10.wav",
+    "openhat2/11.wav",
+    "openhat2/12.wav"
+  ],
+  "shaker2": [
+    "shaker2/01.wav",
+    "shaker2/02.wav",
+    "shaker2/03.wav",
+    "shaker2/04.wav",
+    "shaker2/05.wav",
+    "shaker2/06.wav",
+    "shaker2/07.wav",
+    "shaker2/08.wav",
+    "shaker2/09.wav",
+    "shaker2/10.wav",
+    "shaker2/11.wav",
+    "shaker2/12.wav"
   ]
 }
