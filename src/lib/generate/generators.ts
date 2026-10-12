@@ -309,6 +309,7 @@ function varyBar(
   length: number,
   note: number,
   blank: Step,
+  vary: number,
 ): void {
   const start = bar * BAR;
   const end = Math.min(length, start + BAR);
@@ -316,12 +317,12 @@ function varyBar(
   const isOn = (i: number) => i >= start && i < end && steps[i].on;
 
   if (role === 'kick' && bar > 0) {
-    if (chance(rng, 0.3)) {
+    if (chance(rng, 0.3 * vary)) {
       const spots = [3, 7, 9, 11, 13, 14, 15]
         .map((r) => start + r)
         .filter((i) => i < end && !isOn(i) && !isOn(i - 1) && !isOn(i + 1));
       if (spots.length) setHit(steps, pick(rng, spots), { note, vel: human(0.62, rng) });
-    } else if (chance(rng, 0.15)) {
+    } else if (chance(rng, 0.15 * vary)) {
       // Only syncopated kicks can go; kicks on the beat carry the groove.
       const extras: number[] = [];
       for (let i = start + 1; i < end; i++) if (steps[i].on && (i - start) % 4 !== 0) extras.push(i);
@@ -330,7 +331,7 @@ function varyBar(
   }
 
   if (role === 'snare' && instrument === 'snare') {
-    const amount = genre.drums.ghosts * (bar === 0 ? 0.06 : 0.12);
+    const amount = genre.drums.ghosts * (bar === 0 ? 0.06 : 0.12 * vary);
     for (const r of [1, 3, 6, 7, 9, 11, 14, 15]) {
       const i = start + r;
       if (i < end && !steps[i].on && chance(rng, amount)) setHit(steps, i, { note, vel: human(0.26, rng, 0.15) });
@@ -339,11 +340,11 @@ function varyBar(
 
   if (role === 'hat') {
     for (let i = start + 1; i < end; i += 2) {
-      if (!steps[i].on && chance(rng, genre.drums.ghosts * 0.06)) {
+      if (!steps[i].on && chance(rng, genre.drums.ghosts * 0.06 * vary)) {
         setHit(steps, i, { note, vel: human(0.22, rng, 0.15) });
       }
     }
-    if (instrument === 'hat' && chance(rng, genre.drums.rolls * 0.6)) {
+    if (instrument === 'hat' && chance(rng, genre.drums.rolls * 0.6 * vary)) {
       const spots: number[] = [];
       for (let i = start; i < end; i++) if ((i - start) % 4 !== 0 && steps[i].ratchet === 1) spots.push(i);
       if (spots.length) {
@@ -351,7 +352,7 @@ function varyBar(
         setHit(steps, i, { note, vel: human(0.62, rng), ratchet: randInt(rng, 2, 4) });
       }
     }
-    if (bar > 0 && chance(rng, 0.12)) {
+    if (bar > 0 && chance(rng, 0.12 * vary)) {
       const weak: number[] = [];
       for (let i = start; i < end; i++)
         if (steps[i].on && (i - start) % 4 !== 0 && steps[i].ratchet === 1) weak.push(i);
@@ -436,7 +437,8 @@ export function drumStepsFromGroove(
   }
 
   const bars = Math.ceil(length / BAR);
-  for (let bar = 0; bar < bars; bar++) varyBar(steps, instrument, genre, rng, bar, length, note, blank);
+  const vary = genre.drums.vary ?? 1;
+  for (let bar = 0; bar < bars; bar++) varyBar(steps, instrument, genre, rng, bar, length, note, blank, vary);
   if (length > BAR && options.fill !== false) addDrumFill(steps, instrument, genre, rng, length, note, blank);
   return steps;
 }

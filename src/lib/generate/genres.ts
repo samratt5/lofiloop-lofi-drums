@@ -74,6 +74,11 @@ export interface DrumFeel {
   rolls: number;
   /** What happens in the last steps of a multi-bar pattern */
   fill: FillStyle;
+  /**
+   * 0..1 how much later bars are varied from the first. Lofi keeps a stable
+   * loop (low), so the groove repeats instead of wandering. Defaults to 1.
+   */
+  vary?: number;
 }
 
 export interface Genre {
@@ -107,8 +112,8 @@ export const GENRES: Record<GenreId, Genre> = {
     id: 'lofi',
     name: 'Lofi',
     description: 'Dusty, lazy swung drums, jazzy seventh chords and tape wobble.',
-    bpm: [72, 90],
-    swing: [56, 64],
+    bpm: [74, 88],
+    swing: [58, 66],
     scales: ['minor', 'dorian', 'major'],
     kit: ['kick', 'snare', 'hat', 'openhat', 'keys', 'bass', 'bell'],
     kits: [
@@ -125,12 +130,12 @@ export const GENRES: Record<GenreId, Genre> = {
     ],
     chordType: 'seventh',
     fx: {
-      tone: 0.62,
-      crackle: 0.35,
-      wow: 0.28,
-      drive: 0.22,
+      tone: 0.55,
+      crackle: 0.4,
+      wow: 0.32,
+      drive: 0.24,
       reverbSize: 0.55,
-      reverbMix: 0.32,
+      reverbMix: 0.34,
       delayDivision: '1/8d',
       delayFeedback: 0.35,
       delayMix: 0.22,
@@ -143,305 +148,159 @@ export const GENRES: Record<GenreId, Genre> = {
       keys: { tone: 0.35, tremolo: 0.3 },
       bell: { tone: 0.4, decay: 1.6 },
     },
+    // Boom-bap backbeats played soft: kick on the 1 with one syncopated kick,
+    // snare on 2 and 4 with a ghost on the last 16th, quiet swung 8th hats and
+    // the odd open hat. The loop repeats; that repetition is the style.
     grooves: [
-      {
-        name: 'Dusty',
-        parts: {
-          kick: 'X.....x...x.....',
-          snare: '....X..g....X..?',
-          hat: 'x.o.x.o.x.o.x.o.',
-          openhat: '................ | ..............o.',
-        },
-      },
-      {
-        name: 'Sleepy',
-        parts: {
-          kick: 'X.......x.......',
-          snare: '....X.......X...',
-          hat: 'x.o.x.ogx.o.x.o.',
-          openhat: '................ | ......o.........',
-        },
-      },
-      {
-        name: 'Rainy',
-        parts: {
-          kick: 'X.........X.....',
-          snare: '....X.....g.X...',
-          hat: 'x..ox..ox..ox..o',
-          openhat: '..............o. | ................',
-        },
-      },
-      {
-        name: 'Tape',
-        parts: {
-          kick: 'X.......x.x.....',
-          snare: '....X..g....X.g.',
-          hat: 'x.o.x.o.x.o.x.oo',
-          openhat: '................ | ..........o.....',
-        },
-      },
-      {
-        name: 'Head nod',
-        parts: {
-          kick: 'X..x......x.....',
-          snare: '....X...g...X...',
-          hat: 'x.x.x.x.x.x.x.x.',
-          openhat: '..............o. | ................',
-        },
-      },
       {
         name: 'Backbeat',
         parts: {
-          kick: 'X.......X.......',
-          snare: '....X.......X...',
-          hat: 'x.o.x.o.x.o.x.o.',
-          openhat: '................ | ......o.........',
+          kick: 'x.........x.....',
+          snare: '....x.......x..g',
+          hat: 'o.g.o.g.o.g.o.g.',
+          openhat: '..............o.',
         },
       },
       {
-        name: 'Two step',
+        name: 'Two and',
         parts: {
-          kick: 'X.....x...x.....',
-          snare: '....X.......X..?',
-          hat: 'x.x.x.x.x.x.x.x.',
-          openhat: '................ | ..............o.',
+          kick: 'x.....x.........',
+          snare: '....x.......x..g',
+          hat: 'o.g.o.g.o.g.o.g.',
+          openhat: '..............o.',
         },
       },
       {
-        name: 'Halftime',
+        name: 'Laid back',
         parts: {
-          kick: 'X.........X.....',
-          snare: '........X.......',
-          hat: 'x..ox..ox..ox..o',
-          openhat: '..............o. | ................',
+          kick: 'x.......x.......',
+          snare: '....x.......x...',
+          hat: 'o.g.o.g.o.g.o.g.',
+          openhat: '..............o.',
+        },
+      },
+      {
+        name: 'Sparse',
+        parts: {
+          kick: 'x.........x.....',
+          snare: '....x.......x...',
+          hat: 'o...o...o...o...',
+          openhat: '..........o.....',
         },
       },
       {
         name: 'Ghosty',
         parts: {
-          kick: 'X..x....x.x.....',
-          snare: '....X..g..g.X...',
-          hat: 'x.oxx.oxx.oxx.ox',
-          openhat: '................ | ....o...........',
+          kick: 'x.........x.....',
+          snare: '....x.....g.x..g',
+          hat: 'o.g.o.g.o.g.o.gg',
+          openhat: '..............o.',
         },
       },
       {
-        name: 'Lazy',
+        name: 'Late kick',
         parts: {
-          kick: 'X.........x.....',
-          snare: '....X.......X.g.',
-          hat: 'x.o.x.o.x.o.x.oo',
-          openhat: '................ | ......o.........',
+          kick: 'x.........x...x.',
+          snare: '....x.......x...',
+          hat: 'o.g.o.g.o.g.o.g.',
+          openhat: '..............o.',
         },
       },
       {
-        name: 'Boom',
+        name: 'Halftime',
         parts: {
-          kick: 'X.....x...x...x.',
-          snare: '....X.......X...',
-          hat: 'x.x.x.x.x.x.x.x.',
-          openhat: '..............o. | ................',
+          kick: 'x.........x.....',
+          snare: '........x.......',
+          hat: 'o.g.o.g.o.g.o.g.',
+          openhat: '..............o.',
+        },
+      },
+      {
+        name: 'Push',
+        parts: {
+          kick: 'x.........x..x..',
+          snare: '....x.......x..g',
+          hat: 'o.g.o.g.o.g.o.g.',
+          openhat: '............o...',
+        },
+      },
+      {
+        name: 'Three kick',
+        parts: {
+          kick: 'x.....x...x.....',
+          snare: '....x.......x..g',
+          hat: 'o.g.o.g.o.g.o.g.',
+          openhat: '..............o.',
+        },
+      },
+      {
+        name: 'Simple',
+        parts: {
+          kick: 'x.......x.......',
+          snare: '....x.......x...',
+          hat: 'o...o...o...o...',
+          openhat: '..............o.',
         },
       },
       {
         name: 'Drift',
         parts: {
-          kick: 'X.......x.......',
-          snare: '....X.....o.X...',
-          hat: 'x..ox..ox..ox..o',
-          openhat: '................ | ..........o.....',
-        },
-      },
-      {
-        name: 'Shuffle',
-        parts: {
-          kick: 'X..x....x.......',
-          snare: '....X..g....X...',
-          hat: 'x.oxx.oxx.oxx.ox',
-          openhat: '................ | ..............o.',
-        },
-      },
-      {
-        name: 'Vinyl',
-        parts: {
-          kick: 'X.........X.x...',
-          snare: '....X.......X.g.',
-          hat: 'x..ox..ox..ox..o',
-          openhat: '..............o. | ................',
-          rim: '...........g.... | ......g.........',
+          kick: 'x.........x.....',
+          snare: '....x.......x.g.',
+          hat: 'o.g.o.g.o.g.o.gg',
+          openhat: '..............o.',
         },
       },
       {
         name: 'Sunday',
         parts: {
-          kick: 'X.....x...x..x..',
-          snare: '....X.......X..?',
-          hat: 'x.o.x.o.x.o.x.o.',
-          openhat: '................ | ......o.........',
-          shaker: 'g.o.g.o.g.o.g.o. | g.o.g.o.g.o.g.o.',
-        },
-      },
-      {
-        name: 'Mellow',
-        parts: {
-          kick: 'X.........x...x.',
-          snare: '....X..g....X...',
-          hat: 'x.x.x.x.x.x.x.x.',
-          openhat: '................ | ....o...........',
-        },
-      },
-      {
-        name: 'Haze',
-        parts: {
-          kick: 'X.....x..x......',
-          snare: '....X.......X...',
-          hat: 'x.oxx.oxx.oxx.ox',
-          openhat: '..o.....o.....o. | ..o.....o.....o.',
-        },
-      },
-      {
-        name: 'Cassette',
-        parts: {
-          kick: 'X..x....x.x.....',
-          snare: '....X...g...X..?',
-          hat: 'x.o.x.o.x.o.x.oo',
-          openhat: '................ | ..........o.....',
-          rim: '...........g.... | ...g......g.....',
-        },
-      },
-      {
-        name: 'Lantern',
-        parts: {
-          kick: 'X.........X.....',
-          snare: '....X.......X.g.',
-          hat: 'x..ox..ox..ox..o',
-          openhat: '..............o. | ................',
-        },
-      },
-      {
-        name: 'Tram',
-        parts: {
-          kick: 'X.....x...x.....',
-          snare: '....X..g....X..?',
-          hat: 'x.o.x.o.x.o.x...',
-          openhat: '................ | ..........o.....',
-        },
-      },
-      {
-        name: 'Coffee',
-        parts: {
-          kick: 'X.....x...x..x..',
-          snare: '....X.......X...',
-          hat: 'x.o.x.o.x.o.x.o.',
-          openhat: '................ | ..............o.',
-          shaker: 'g.o.g.o.g.o.g.o. | g.o.g.o.g.o.g.o.',
-        },
-      },
-      {
-        name: 'Porch',
-        parts: {
-          kick: 'X.......x.x.....',
-          snare: '....X..g....X...',
-          hat: 'x.x.x.x.x.x.x.x.',
-          openhat: '................ | ....o...........',
-          shaker: 'g.o.g.o.g.o.g.o. | g.o.g.o.g.o.g.o.',
-        },
-      },
-      {
-        name: 'Static',
-        parts: {
-          kick: 'X.........X.x...',
-          snare: '....X.......X...',
-          hat: 'x..ox..ox..ox..o',
-          openhat: '..............o. | ................',
-          rim: '...........g.... | ....g......g....',
-        },
-      },
-      {
-        name: 'Noturno',
-        parts: {
-          kick: 'X.....x...x.....',
-          snare: '....X..g....X..g',
-          hat: 'x.o.x.o.x.o.x.oo',
-          openhat: '................ | ......o.........',
-        },
-      },
-      {
-        name: 'Wobble',
-        parts: {
-          kick: 'X.......x.......',
-          snare: '....X.....g.X...',
-          hat: 'x.o.x.o.x.o.x.o.',
-          openhat: '..............o. | ................',
-        },
-      },
-      {
-        name: 'Amber',
-        parts: {
-          kick: 'X.....x...x.....',
-          snare: '....X..g....X..?',
-          hat: 'x.o.x.o.x.o.x.o.',
-          openhat: '................ | ....o...........',
-          tom: '................ | ..........o..o..',
-        },
-      },
-      {
-        name: 'Polaroid',
-        parts: {
-          kick: 'X.....x..x......',
-          snare: '....X.......X...',
-          hat: 'x.x.x.x.x.x.x.x.',
-          openhat: '................ | ..............o.',
-          shaker: 'g.o.g.o.g.o.g.o. | g.o.g.o.g.o.g.o.',
-        },
-      },
-      {
-        name: 'Autumn',
-        parts: {
-          kick: 'X.......x.x.....',
-          snare: '....X..g....X...',
-          hat: 'x.o.x.o.x.o.x.oo',
-          openhat: '..............o. | ................',
-          rim: '...........g.... | ...g......g.....',
+          kick: 'x.....x.........',
+          snare: '....x.......x...',
+          hat: 'o.g.o.g.o.g.o.g.',
+          openhat: '..............o.',
+          shaker: 'o.g.o.g.o.g.o.g.',
         },
       },
     ],
-    drums: { ghosts: 0.5, rolls: 0, fill: 'snare' },
+    // Soft dynamics, a stable loop, no per-bar surprises.
+    drums: { ghosts: 0.45, rolls: 0, fill: 'none', vary: 0.12 },
     progressions: [
-      major(2, 5, 1, 6),
-      major(1, 6, 2, 5),
-      major(4, 3, 2, 1),
-      major(4, 5, 3, 6),
-      major(1, 5, 6, 4),
-      major(6, 4, 1, 5),
-      major(1, 4, 6, 5),
-      major(2, 5, 1, 1),
-      major(4, 1, 5, 6),
-      major(1, 6, 4, 5),
-      major(5, 6, 4, 1),
-      minor(1, 6, 3, 7),
-      minor(4, 7, 3, 1),
-      minor(2, 5, 1, 6),
+      // Two-chord vamps: the most lofi of all (im7-IVm7 etc.)
       minor(1, 4),
+      minor(1, 6),
+      minor(1, 5),
+      minor(6, 4),
+      minor(4, 5),
+      minor(1, 3),
+      major(1, 6),
+      major(1, 5),
+      major(1, 4),
+      major(2, 5),
+      major(6, 4),
+      major(4, 5),
+      // Four-chord loops
+      minor(2, 5, 1, 6),
+      minor(1, 6, 3, 7),
       minor(4, 5, 1, 1),
       minor(1, 7, 6, 7),
       minor(6, 4, 1, 5),
-      minor(1, 5, 6, 4),
-      minor(1, 3, 4, 4),
-      minor(4, 5, 1, 6),
+      major(2, 5, 1, 6),
+      major(1, 6, 2, 5),
+      major(1, 6, 4, 5),
+      major(4, 5, 3, 6),
+      major(1, 5, 6, 4),
+      major(6, 4, 1, 5),
     ],
+    // One chord per bar, never two: lofi harmony moves slowly.
     chordRhythms: [
       { span: 16, hits: [0], push: 0 },
-      { span: 16, hits: [0, 10], push: 1 },
-      { span: 16, hits: [0, 6], push: 2 },
+      { span: 16, hits: [0], push: 1 },
+      { span: 16, hits: [0], push: 2 },
       { span: 16, hits: [0, 8], push: 0 },
-      { span: 16, hits: [0, 4, 10], push: 1 },
-      { span: 8, hits: [0], push: 1 },
-      { span: 8, hits: [0, 4], push: 1 },
-      { span: 8, hits: [0, 6], push: 2 },
+      { span: 16, hits: [0, 10], push: 1 },
     ],
     bass: 'syncopated',
-    melody: { density: 0.36, grid: 2, maxLen: 4, syncopation: 0.25, register: 0 },
+    melody: { density: 0.3, grid: 2, maxLen: 4, syncopation: 0.2, register: 0 },
   },
   jazzhop: {
     id: 'jazzhop',
