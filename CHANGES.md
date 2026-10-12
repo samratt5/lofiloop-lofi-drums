@@ -1,56 +1,69 @@
-# What changed (lofi feel)
+# What changed
 
-The drums were the problem, and the cause was in the generator, not the samples.
-This build makes the lofi output follow how lofi is actually played.
+## Latest: no more music-box bells in lofi
 
-## What was wrong
+The lofi kit listed `bell` (the "Music Box" voice) as its melodic instrument, so
+every generated lofi song put a toy bell on the melody. Bells belong to trap and
+ambient, not to lofi.
+
+- The lofi kit and all nine lofi kit lineups now use `wurli` (a warm electric
+  piano) for the melody; one lineup uses `guitar` (nylon) for variety. Two
+  lineups deliberately have no lead at all, so the beat can be chords-and-drums.
+- The hand-made "Midnight Tape" demo track was also a bell melody; it is now a
+  Wurli.
+- The "Rainy Commute" template description no longer mentions a bell.
+- A regression test asserts a default lofi song never contains a `bell`.
+
+Files: `src/lib/generate/genres.ts`, `src/lib/project/templates.ts`,
+`src/lib/generate/song.test.ts`.
+
+## Lofi feel: stable swung boom-bap loops
 
 A lofi beat is a **stable 1–2 bar boom-bap loop**: kick on the 1 with one
 syncopated kick, snare on 2 and 4, soft heavily-swung hats, a ghost snare, and
-nothing at full velocity. It repeats — the repetition is the style. The
-harmony moves slowly (a chord a bar at most, often two chords for the whole
-loop).
+nothing at full velocity. It repeats — the repetition is the style. The harmony
+moves slowly, a chord a bar at most.
 
-The generator did the opposite. `varyBar` re-rolled the kick on **every bar
+The generator did the opposite: `varyBar` re-rolled the kick on **every bar
 after the first** (a 30% chance of an extra kick, a 15% chance of dropping one),
-and lofi's chord rhythms included a half-bar span, so chords changed twice a
-bar. That is the "random bs kicks" — and because the same routine runs in both
-the beat and the song generators, it affected everything.
+in both the beat and the song generators, and lofi's chord rhythms included a
+half-bar span so chords changed twice a bar. That is the "random bs kicks".
 
-## The fixes
+Fixes:
 
-1. **Authentic lofi grooves.** The 28 grooves are replaced with 12 soft
-   boom-bap backbeats: kick on the 1 plus one syncopated kick, snare on 2 and 4
-   with a ghost on the last 16th, quiet swung 8th hats (`o.g.o.g.…`), the odd
-   open hat. Velocities are low — nothing at full. File:
-   `src/lib/generate/genres.ts`.
-2. **Stable loops.** A new per-genre `drums.vary` (0–1, default 1) scales every
-   random per-bar change; lofi sets it to 0.12. Lofi also sets `fill: 'none'`,
-   so a loop repeats instead of getting a drum fill every two bars. Files:
-   `src/lib/generate/genres.ts`, `src/lib/generate/generators.ts`.
-3. **Slow harmonic rhythm.** Lofi's chord rhythms are all one-per-bar (the
-   half-bar ones are gone), and the progression list leads with two-chord vamps
-   (`im7–IVm7` and friends), the most lofi shape of all. File:
-   `src/lib/generate/genres.ts`.
-4. **Tempo and swing** tightened to the lofi band: 74–88 BPM, swing 58–66%.
-5. **Curated samples.** The kick, snare, hat and open-hat recipes were narrowed
-   to one round, dusty character (a lofi kick is round, not a modern click), so
-   a song's kit is consistent instead of a lottery. File: `tools/gen_drums.py`
-   (252 samples regenerated).
+1. **Authentic lofi grooves.** 28 busy grooves replaced with 12 soft boom-bap
+   backbeats: kick on the 1 plus one syncopated kick, snare on 2 and 4 with a
+   ghost on the last 16th, quiet swung 8th hats, the odd open hat, low
+   velocities.
+2. **Stable loops.** A per-genre `drums.vary` (0–1, default 1) scales every
+   random per-bar change; lofi sets 0.12. Lofi also sets `fill: 'none'`, so a
+   loop repeats instead of getting a drum fill every two bars.
+3. **Slow harmonic rhythm.** Lofi's chord rhythms are all one-per-bar, and the
+   progression list leads with two-chord vamps (`im7–IVm7`), the most lofi shape.
+4. **Tempo and swing** tightened to 74–88 BPM and 58–66%.
+5. **Curated samples.** The kick, snare and hat recipes were narrowed to one
+   round, dusty character.
 
-## Measured
+Measured across 30 generated lofi beats, before → after: bars identical within a
+loop **0/30 → 26/30**; snare on 2 and 4 28/30 (the rest are the deliberate
+half-time groove and clap kits); kick on the 1 in all 30.
 
-Across 30 generated lofi beats, before → after:
+## The sampled drum kit
 
-|                                       | before | after     |
-| ------------------------------------- | ------ | --------- |
-| bars identical within a loop (stable) | 0/30   | **26/30** |
-| snare on 2 and 4                      | 30/30  | 28/30     |
-| kick on the 1                         | 30/30  | 30/30     |
+- **`tools/gen_drums.py`** — deterministic Python + numpy generator for 252 lofi
+  one-shots. Run: `python3 tools/gen_drums.py public/drums`.
+- **`public/drums/`** — the generated WAVs (~3.3 MB) plus `manifest.json`.
+- **`src/lib/audio/drumkit.ts`** — fetches and decodes the kit into a
+  context-free buffer bank shared by live playback and exports, in the
+  background, so the studio never waits on it.
+- Six extra drum instruments (Deep Kick, Tape Kick, Vinyl Snare, Airy Hat, Long
+  Open Hat, Soft Shaker) alongside the original kit.
 
-The two beats without a snare on 2 and 4 are the deliberate half-time groove and
-clap-kit lineups. The point of the first row is that the loop now repeats, which
-is what makes it sound like lofi rather than a random walk.
+## Mobile
+
+Safe-area padding for notched phones (`viewport-fit: cover` was set with no
+inset handling), a larger step-pad tap target, and cache-first offline caching
+of `/drums/` in the service worker.
 
 ## Verifying
 
@@ -61,6 +74,6 @@ npm run check          # lint + typecheck + format + unit tests
 npm run build
 ```
 
-Lint, typecheck and formatting are clean; the unit suite passes apart from two
+Lint, typecheck and formatting are clean. The unit suite passes apart from two
 failures that are pre-existing in this environment (a loudness test and a
 3-second performance test) — both fail identically on the untouched original.
