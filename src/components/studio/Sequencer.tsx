@@ -366,7 +366,7 @@ export function Sequencer() {
       ref={scrollRef}
       data-tour="grid"
       className={cn(
-        'relative min-h-0 flex-1 overflow-auto overscroll-contain [--cw:26px] [--hw:132px] sm:[--cw:30px] sm:[--hw:236px]',
+        'relative min-h-0 flex-1 overflow-auto overscroll-contain [--cw:34px] [--hw:118px] sm:[--cw:30px] sm:[--hw:236px]',
         scope,
       )}
     >

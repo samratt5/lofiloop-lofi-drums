@@ -36,7 +36,7 @@ function sampleBuffer(ctx: FakeContext): unknown {
   return used[0];
 }
 
-function playKick(seed?: number, instrument: 'kick' | 'snare' = 'kick') {
+function play(instrument: 'kick' | 'snare' | 'kick2', seed?: number) {
   const ctx = new FakeContext();
   const out = ctx.createGain();
   const input: VoiceInput = { time: 1, note: 60, velocity: 0.8, duration: 0.2, variantSeed: seed };
@@ -55,26 +55,28 @@ describe('drumkit', () => {
     manifest = JSON.parse(readFileSync(join(ROOT, 'manifest.json'), 'utf8')) as Record<string, string[]>;
     drumkit = await import('./drumkit');
     await drumkit.loadDrumKit();
-    // The manifest is fetched once, then every listed file is decoded.
     expect(seen[0]).toBe('manifest.json');
     expect(seen).toHaveLength(1 + Object.values(manifest).flat().length);
   });
 
-  it('exposes a variant pool per instrument', () => {
+  it('exposes a variant pool per instrument, including the new lofi voices', () => {
     expect(drumkit.drumKitLoaded()).toBe(true);
     for (const [instrument, files] of Object.entries(manifest)) {
       expect(drumkit.drumVariants(instrument)).toHaveLength(files.length);
+    }
+    for (const extra of ['kick2', 'kick3', 'snare2', 'hat2', 'openhat2', 'shaker2']) {
+      expect(drumkit.drumVariants(extra)!.length).toBeGreaterThan(0);
     }
     expect(drumkit.drumVariants('not-an-instrument')).toBeUndefined();
   });
 
   it('plays a decoded sample instead of synthesis once loaded', () => {
-    const ctx = playKick(3);
-    expect(drumkit.drumVariants('kick')).toContain(sampleBuffer(ctx));
+    expect(drumkit.drumVariants('kick')).toContain(sampleBuffer(play('kick', 3)));
+    expect(drumkit.drumVariants('kick2')).toContain(sampleBuffer(play('kick2', 5)));
   });
 
   it('picks the same variant for the same track seed, and a different one for another seed', () => {
-    expect(sampleBuffer(playKick(7, 'snare'))).toBe(sampleBuffer(playKick(7, 'snare')));
-    expect(sampleBuffer(playKick(7, 'snare'))).not.toBe(sampleBuffer(playKick(1234, 'snare')));
+    expect(sampleBuffer(play('snare', 7))).toBe(sampleBuffer(play('snare', 7)));
+    expect(sampleBuffer(play('snare', 7))).not.toBe(sampleBuffer(play('snare', 1234)));
   });
 });

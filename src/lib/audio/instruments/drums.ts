@@ -117,6 +117,16 @@ export const kick: VoiceFn = (ctx, out, input, p) =>
   playSampled('kick', ctx, out, input, p, { level: 0.56, tuneId: 'tune', decayId: 'decay' }) ??
   synthKick(ctx, out, input, p);
 
+/** Deep Kick — rounder and lower. */
+export const kick2: VoiceFn = (ctx, out, input, p) =>
+  playSampled('kick2', ctx, out, input, p, { level: 0.62, tuneId: 'tune', decayId: 'decay' }) ??
+  synthKick(ctx, out, input, p);
+
+/** Tape Kick — punchier and more saturated. */
+export const kick3: VoiceFn = (ctx, out, input, p) =>
+  playSampled('kick3', ctx, out, input, p, { level: 0.56, tuneId: 'tune', decayId: 'decay' }) ??
+  synthKick(ctx, out, input, p);
+
 const synthSnare: VoiceFn = (ctx, out, { time, velocity }, p) => {
   const v = new VoiceBuilder(ctx, out, time);
   const level = velocityGain(velocity);
@@ -147,6 +157,11 @@ const synthSnare: VoiceFn = (ctx, out, { time, velocity }, p) => {
 
 export const snare: VoiceFn = (ctx, out, input, p) =>
   playSampled('snare', ctx, out, input, p, { level: 0.62, tuneId: 'tune', decayId: 'decay' }) ??
+  synthSnare(ctx, out, input, p);
+
+/** Vinyl Snare — darker, longer body. */
+export const snare2: VoiceFn = (ctx, out, input, p) =>
+  playSampled('snare2', ctx, out, input, p, { level: 0.62, tuneId: 'tune', decayId: 'decay' }) ??
   synthSnare(ctx, out, input, p);
 
 const synthClap: VoiceFn = (ctx, out, { time, velocity }, p) => {
@@ -224,8 +239,16 @@ const synthOpenHat = hatVoice(true);
 export const hat: VoiceFn = (ctx, out, input, p) =>
   playSampled('hat', ctx, out, input, p, { level: 0.65, decayId: 'decay' }) ?? synthHat(ctx, out, input, p);
 
+/** Airy Hat — longer, brighter. */
+export const hat2: VoiceFn = (ctx, out, input, p) =>
+  playSampled('hat2', ctx, out, input, p, { level: 0.6, decayId: 'decay' }) ?? synthHat(ctx, out, input, p);
+
 export const openhat: VoiceFn = (ctx, out, input, p) =>
   playSampled('openhat', ctx, out, input, p, { level: 0.55, decayId: 'decay' }) ?? synthOpenHat(ctx, out, input, p);
+
+/** Long Open Hat — a wash. */
+export const openhat2: VoiceFn = (ctx, out, input, p) =>
+  playSampled('openhat2', ctx, out, input, p, { level: 0.5, decayId: 'decay' }) ?? synthOpenHat(ctx, out, input, p);
 
 const synthRim: VoiceFn = (ctx, out, { time, velocity }, p) => {
   const v = new VoiceBuilder(ctx, out, time);
@@ -278,6 +301,10 @@ const synthShaker: VoiceFn = (ctx, out, { time, velocity }, p) => {
 
 export const shaker: VoiceFn = (ctx, out, input, p) =>
   playSampled('shaker', ctx, out, input, p, { level: 0.42, decayId: 'decay' }) ?? synthShaker(ctx, out, input, p);
+
+/** Soft Shaker — darker and gentler. */
+export const shaker2: VoiceFn = (ctx, out, input, p) =>
+  playSampled('shaker2', ctx, out, input, p, { level: 0.4, decayId: 'decay' }) ?? synthShaker(ctx, out, input, p);
 
 const synthTom: VoiceFn = (ctx, out, { time, velocity }, p) => {
   const v = new VoiceBuilder(ctx, out, time);

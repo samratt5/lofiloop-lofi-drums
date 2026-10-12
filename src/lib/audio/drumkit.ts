@@ -1,15 +1,15 @@
 /**
  * Built-in sampled drum kit.
  *
- * A bundle of procedurally generated one-shots (see `public/drums`) is fetched
- * and decoded once at boot. Each drum track draws one variant from its
- * instrument's pool, so a song keeps a consistent kick/snare/hat while the next
- * song gets a different one. Until (or unless) the kit loads, the voices fall
- * back to pure synthesis, so playback is never blocked by a slow or missing
- * asset.
+ * A bundle of procedurally generated one-shots (see `public/drums` and
+ * `tools/gen_drums.py`) is fetched and decoded in the background at boot. Each
+ * drum track draws one variant from its instrument's pool, so a song keeps a
+ * consistent kick/snare/hat while the next song gets a different kit. Until (or
+ * unless) the kit loads, the voices fall back to pure synthesis — the app never
+ * waits on it, so a slow phone connection can't stall the studio.
  *
  * AudioBuffers are not tied to a context, so a single bank serves live playback
- * and offline exports alike — exports stay in step with what you hear.
+ * and offline exports alike.
  */
 const bank = new Map<string, AudioBuffer[]>();
 const listeners = new Set<() => void>();

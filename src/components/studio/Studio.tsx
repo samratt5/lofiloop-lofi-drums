@@ -88,7 +88,7 @@ export default function Studio() {
   useMeters(playing);
 
   return (
-    <div className="bg-bg text-fg flex h-dvh flex-col overflow-hidden">
+    <div className="app-safe bg-bg text-fg flex h-dvh flex-col overflow-hidden">
       <TopBar />
       <div className="flex min-h-0 flex-1">
         <main className="flex min-w-0 flex-1 flex-col">

@@ -118,10 +118,9 @@ async function start(): Promise<void> {
   engine.attach(getProject);
   engine.setMetronome(useUi.getState().metronome);
 
-  // Fetch and decode the sampled drum kit while the library opens, so the first
-  // beat already plays through the samples. Resolves either way; the synthesised
-  // voices cover a missing or slow kit.
-  const kitReady = loadDrumKit();
+  // Load the sampled drum kit in the background. The drum voices fall back to
+  // synthesis until it is ready, so a slow connection never stalls the studio.
+  void loadDrumKit();
 
   let project: Project | null = null;
   try {
@@ -134,8 +133,6 @@ async function start(): Promise<void> {
   if (storageAvailable() === 'memory') {
     ui.toast('This browser is blocking storage, so changes won’t be kept after you close the tab.', 'error');
   }
-
-  await kitReady;
 
   // A save cut off by closing the tab last time wins over what's stored, if it's newer.
   const backup = readBackup();
