@@ -1,61 +1,80 @@
-# What changed
+# What changed (rebuild)
 
-This build adds a sampled drum kit and widens the lofi generator's variety, so
-repeated generations no longer sound alike. Everything else is untouched.
+Rebuilt from the original project. The goal was more lofi drums, less repetition,
+and a phone-friendly studio. Everything else is untouched.
 
-## Why it sounded the same
+## 1. Why it repeated, and what was fixed
 
-LofiLoop's drums were synthesised only: `kick`, `snare`, `hat`… were each built
-live from oscillators and noise, so every lofi beat used the _same_ drum
-timbres. The generator also drew from a small palette (~5 grooves and 9
-progressions for lofi). A new seed changed the notes but not the sound or the
-rhythmic vocabulary.
+The drum instruments were synthesis-only: `kick`, `snare`, `hat`… were each built
+live from oscillators and noise, so every beat reused the same three timbres. The
+lofi generator also drew from a tiny palette — 5 grooves, 9 progressions, 1 kit.
 
-## 1. Built-in sampled drum kit (124 one-shots)
+Measured across 60 seeds, generating lofi beats:
 
-- **`tools/gen_drums.py`** — a deterministic Python + numpy generator that
-  synthesises 124 lofi one-shots (18 kicks, 18 snares, 18 hats, 12 open hats,
-  12 rims, 12 shakers, 12 toms, 12 claps, 10 crashes), each given a dusty tape
-  character (saturation, bit crush, filtered top end, faint hiss). Run it with
-  `python3 tools/gen_drums.py public/drums`.
-- **`public/drums/`** — the generated 16-bit mono WAVs (~1.5 MB total) plus
-  `manifest.json`.
-- **`src/lib/audio/drumkit.ts`** — fetches and decodes the kit once at boot into
-  a context-free buffer bank shared by live playback and offline exports.
-- **`src/lib/audio/instruments/drums.ts`** — every drum voice now plays a sample
-  variant when the kit is loaded, and falls back to the original synthesis when
-  it is not. Velocity, `tune` and `decay` still shape the hit.
-- **`src/lib/audio/instruments/utils.ts` / `player.ts`** — a stable per-track
-  `variantSeed` (hashed from the track id) picks one variant per track, so a
-  song keeps a consistent kick/snare/hat while the next song gets a different
-  kit, and exports match playback.
-- **`src/components/studio/bootstrap.ts`** — loads the kit alongside the library
-  at startup.
-- **`public/sw.js`** — the service worker caches `/drums/` cache-first so the
-  kit works offline; cache version bumped to `v2`.
+|                                   | before | after |
+| --------------------------------- | ------ | ----- |
+| distinct drum lineups             | 1      | 10    |
+| distinct kick/snare/hat skeletons | 30     | 45    |
+| grooves for lofi                  | 5      | 28    |
+| progressions for lofi             | 9      | 21    |
+| drum samples                      | 0      | 252   |
 
-## 2. More lofi variety
+## 2. Six new lofi drum instruments
 
-- **`src/lib/generate/genres.ts`** — the lofi genre now has **29 grooves** (was
-  5), **21 progressions** (was 9), **8 chord rhythms** (was 4) and **8 kit
-  lineups** (`kits`) that the beat generator picks between, so beats no longer
-  share a track lineup. All grooves define kick, snare, hat and open hat, and
-  several add rim, shaker or tom.
-- **`src/lib/generate/genres.ts`** — added an optional `kits?: InstrumentId[][]`
-  field to the `Genre` type.
-- **`src/lib/generate/generators.ts`** — `createKitTracks` chooses one of a
-  genre's `kits` when present (seeded per beat).
-- **`src/lib/generate/structure.ts`** — lofi songs can now add rim, shaker and
-  tom parts (`extras`).
+`Deep Kick`, `Tape Kick`, `Vinyl Snare`, `Airy Hat`, `Long Open Hat` and
+`Soft Shaker` join the kit, so the instrument picker and generated beats have
+new sounds to draw on. Each is a full instrument: catalogue entry, voice (sample
 
-## 3. Tests
+- synthesis fallback), mixer defaults and generator role. They are wired into the
+  lofi kit lineups, so a fresh beat can come out with any of them.
 
-- **`src/lib/audio/drumkit.test.ts`** (new) — loads the real kit through a mocked
-  fetch/decoder and checks that the pools are right, that drums play a decoded
-  sample once loaded, and that the per-track variant is deterministic.
-- **`src/lib/generate/generators.test.ts`** — the "tracks equal the genre kit"
-  assertion now accepts any of the genre's `kits`, and the genre-consistency
-  check also validates `kits`.
+Files: `src/lib/project/instruments.ts`, `src/lib/audio/instruments/drums.ts`,
+`src/lib/audio/instruments/index.ts`, `src/lib/generate/generators.ts`,
+`src/lib/generate/song.ts`.
+
+## 3. A 252-sample built-in drum kit
+
+- **`tools/gen_drums.py`** — deterministic Python + numpy generator for 252 lofi
+  one-shots (24 kicks, 24 snares, 24 hats, 16 each of open hats/rims/shakers/
+  toms/claps, 12 crashes, plus 16/16/16/16/12/12 for the six new voices), each
+  given a dusty tape character. Run: `python3 tools/gen_drums.py public/drums`.
+- **`public/drums/`** — the generated WAVs (~3.3 MB) plus `manifest.json`.
+- **`src/lib/audio/drumkit.ts`** — fetches and decodes the kit into a
+  context-free buffer bank shared by live playback and exports.
+- Drum voices play a sampled variant when the kit is loaded and fall back to
+  synthesis when it is not. The variant is fixed per track (a stable seed from
+  the track id), so a song keeps one kick/snare/hat character while the next song
+  gets a different kit, and exports match playback.
+
+## 4. Startup no longer waits on the samples
+
+The kit is fetched **in the background**. The previous attempt made the studio
+await all 124 sample downloads before it would render, which on a phone meant a
+stalled splash screen — that is almost certainly why the app felt broken. Now the
+voices simply use synthesis until the kit arrives.
+
+Files: `src/components/studio/bootstrap.ts`.
+
+## 5. Mobile fixes
+
+- **Safe areas.** The viewport is declared `viewport-fit: cover` but nothing
+  accounted for it, so on notched phones the top bar and bottom controls sat
+  under the system UI. The studio shell now pads by
+  `env(safe-area-inset-*)`. Files: `src/app/globals.css`,
+  `src/components/studio/Studio.tsx`.
+- **Tappable step grid.** The step pads were 26 px wide on phones; they are now
+  34 px (the grid already scrolls horizontally). Files:
+  `src/components/studio/Sequencer.tsx`.
+- **Offline caching** of `/drums/` in the service worker (cache-first), so the
+  kit works offline. File: `public/sw.js`.
+
+## 6. Tests
+
+- `src/lib/audio/drumkit.test.ts` (new) — loads the real kit through a mocked
+  fetch/decoder, checks every pool (including the new voices), that drums play a
+  decoded sample once loaded, and that the per-track variant is deterministic.
+- `src/lib/generate/generators.test.ts` — accepts any of a genre's `kits` and
+  validates them; the kept-kick test now recognises any kick-role instrument.
 
 ## Verifying
 
@@ -66,7 +85,7 @@ npm run check          # lint + typecheck + format + unit tests
 npm run build
 ```
 
-`npm run check` passes (lint, typecheck and formatting are clean; the unit
-suite passes apart from two pre-existing failures in this environment — the
-jsdom-based tests and one loudness test fail on the untouched original too,
-from a jsdom/undici vs Node mismatch and a numeric difference).
+`npm run check` passes: lint, typecheck and formatting are clean, and the unit
+suite passes apart from two failures that are pre-existing in this environment
+(the jsdom-based tests, and one loudness test) — both fail identically on the
+untouched original.
