@@ -224,12 +224,18 @@ export function generateProgression(genreId: GenreId, ctx: GenerateContext): num
 
 const FALLBACK_PARTS: Partial<Record<InstrumentId, string>> = {
   kick: 'X.........x.....',
+  kick2: 'X.........x.....',
+  kick3: 'X.......x...x...',
   snare: '....X.......X...',
+  snare2: '....X.......X...',
   clap: '....X.......X...',
   hat: 'x.o.x.o.x.o.x.o.',
+  hat2: 'x.o.x.o.x.o.x.o.',
   openhat: '................ | ..............o.',
+  openhat2: '..............o. | ................',
   rim: '...........g.... | ...g......g.....',
   shaker: 'g.o.g.o.g.o.g.o.',
+  shaker2: 'g.o.g.o.g.o.g.o.',
   tom: '................ | ..........o..o..',
 };
 
@@ -237,6 +243,12 @@ const PART_ALIASES: Partial<Record<InstrumentId, InstrumentId>> = {
   clap: 'snare',
   snare: 'clap',
   '808': 'kick',
+  kick2: 'kick',
+  kick3: 'kick',
+  snare2: 'snare',
+  hat2: 'hat',
+  openhat2: 'openhat',
+  shaker2: 'shaker',
 };
 
 export const SNARE_FILLS = ['..g.', '.g.o', '..go', 'g.go', '...o', '.g.g'];
@@ -247,10 +259,16 @@ export const TOM_FILLS = ['.o.x', 'oo.x', '..ox', 'o.ox'];
 type DrumRole = 'kick' | 'snare' | 'hat' | 'perc';
 
 function drumRole(instrument: InstrumentId): DrumRole {
-  if (instrument === 'kick' || instrument === '808') return 'kick';
-  if (instrument === 'snare' || instrument === 'clap') return 'snare';
-  if (instrument === 'hat' || instrument === 'shaker') return 'hat';
+  if (instrument === 'kick' || instrument === 'kick2' || instrument === 'kick3' || instrument === '808') return 'kick';
+  if (instrument === 'snare' || instrument === 'snare2' || instrument === 'clap') return 'snare';
+  if (instrument === 'hat' || instrument === 'hat2' || instrument === 'shaker' || instrument === 'shaker2')
+    return 'hat';
   return 'perc';
+}
+
+/** A drum that acts as the kick (the 808 is a bass instrument, not a kick track). */
+function isKickDrum(instrument: InstrumentId): boolean {
+  return instrument === 'kick' || instrument === 'kick2' || instrument === 'kick3';
 }
 
 export function grooveFor(genre: Genre, ctx: GenerateContext): DrumGroove {
@@ -850,6 +868,12 @@ export const MIX: Record<InstrumentId, { volume: number; pan: number; reverb: nu
   shaker: { volume: 0.55, pan: 0.35, reverb: 0.1, delay: 0 },
   tom: { volume: 0.66, pan: -0.25, reverb: 0.15, delay: 0 },
   crash: { volume: 0.55, pan: 0.15, reverb: 0.2, delay: 0 },
+  kick2: { volume: 0.86, pan: 0, reverb: 0.02, delay: 0 },
+  kick3: { volume: 0.9, pan: 0, reverb: 0.03, delay: 0 },
+  snare2: { volume: 0.76, pan: 0.04, reverb: 0.18, delay: 0 },
+  hat2: { volume: 0.6, pan: 0.26, reverb: 0.08, delay: 0 },
+  openhat2: { volume: 0.54, pan: -0.14, reverb: 0.14, delay: 0 },
+  shaker2: { volume: 0.5, pan: 0.3, reverb: 0.12, delay: 0 },
   keys: { volume: 0.68, pan: -0.12, reverb: 0.3, delay: 0.08 },
   pad: { volume: 0.62, pan: 0, reverb: 0.45, delay: 0.05 },
   pluck: { volume: 0.62, pan: 0.2, reverb: 0.28, delay: 0.3 },
@@ -887,7 +911,7 @@ function createKitTracks(genre: Genre, rng: Rng): Track[] {
 }
 
 function chokeRank(track: Track): number {
-  return track.instrument === 'openhat' ? 2 : 1;
+  return track.instrument === 'openhat' || track.instrument === 'openhat2' ? 2 : 1;
 }
 
 /**
@@ -943,10 +967,11 @@ function generateTracks(
     rng: seededRng(seed, `${salt}:${index}:${track.instrument}`),
   });
   let kick = base.kick;
-  const kickIndex = tracks.findIndex((t) => t.instrument === 'kick');
+  const kickIndex = tracks.findIndex((t) => isKickDrum(t.instrument));
   if (kickIndex >= 0) {
-    kick = generateDrumSteps(genreId, 'kick', ctxFor(kickIndex, tracks[kickIndex]));
-    result[tracks[kickIndex].id] = kick;
+    const kickTrack = tracks[kickIndex];
+    kick = generateDrumSteps(genreId, kickTrack.instrument, ctxFor(kickIndex, kickTrack));
+    result[kickTrack.id] = kick;
   }
   tracks.forEach((track, index) => {
     if (result[track.id]) return;
@@ -1097,8 +1122,8 @@ export function generateBeat(genreId: GenreId, options: GenerateBeatOptions): Pr
     const def = INSTRUMENTS[track.instrument];
     if (isChordTrack(track)) {
       b.steps[track.id] = a.steps[track.id].map((s) => ({ ...s }));
-    } else if (drop && track.instrument === 'kick') {
-      b.steps[track.id] = blankSteps('kick', root);
+    } else if (drop && isKickDrum(track.instrument)) {
+      b.steps[track.id] = blankSteps(track.instrument, root);
     } else if (drop && def.category === 'bass') {
       const ctx = { ...base, rng: seededRng(seed, `${genreId}:B:drop:${index}`) };
       b.steps[track.id] = bassSteps('sustain', genre, track, ctx, progression);
@@ -1171,7 +1196,7 @@ export function regeneratePattern(
   }
   progression ??= generateProgression(genreId, { ...base, rng: seededRng(seed, `${genreId}:regen:progression`) });
 
-  const keptKick = project.tracks.find((t) => t.instrument === 'kick' && keep.has(t.id));
+  const keptKick = project.tracks.find((t) => isKickDrum(t.instrument) && keep.has(t.id));
   if (keptKick) base.kick = pattern.steps[keptKick.id];
 
   const targets = project.tracks.filter((t) => !keep.has(t.id));

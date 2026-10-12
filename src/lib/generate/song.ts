@@ -163,12 +163,18 @@ const HARMONY_OF: Record<RoleKey, HarmonyKey> = {
 
 const DRUM_ROLES: Partial<Record<InstrumentId, TrackRole>> = {
   kick: 'kick',
+  kick2: 'kick',
+  kick3: 'kick',
   snare: 'snare',
+  snare2: 'snare',
   clap: 'snare',
   hat: 'hat',
+  hat2: 'hat',
   openhat: 'openhat',
+  openhat2: 'openhat',
   rim: 'perc',
   shaker: 'perc',
+  shaker2: 'perc',
   tom: 'tom',
   crash: 'crash',
   riser: 'riser',

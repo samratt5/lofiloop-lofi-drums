@@ -420,7 +420,9 @@ describe('regeneratePattern', () => {
       const p = generateBeat('lofi', { seed });
       const pattern = p.patterns[0];
       const chord = p.tracks.find((t) => t.chord !== 'off')!;
-      const kick = p.tracks.find((t) => t.instrument === 'kick')!;
+      const kick = p.tracks.find(
+        (t) => t.instrument === 'kick' || t.instrument === 'kick2' || t.instrument === 'kick3',
+      )!;
       const bass = p.tracks.find((t) => t.instrument === 'bass')!;
       const result = regeneratePattern(p, pattern.id, 'lofi', { seed: seed + 100, keep: new Set([chord.id, kick.id]) });
       const firstChord = pattern.steps[chord.id].find((s) => s.on)!;

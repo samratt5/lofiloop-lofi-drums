@@ -128,7 +128,7 @@ export const SONG_STYLES: Record<GenreId, SongStyle> = {
     energy: 0.15,
     keyLift: false,
     tapeStop: true,
-    extras: ['rim', 'shaker', 'tom'],
+    extras: ['rim', 'shaker', 'tom', 'shaker2'],
   },
   jazzhop: {
     structures: [
