@@ -147,7 +147,7 @@ def make_snare(rng, *, tune=(175, 235), decay=(0.18, 0.32), bp=(1300, 2300),
     return lofi_chain(x, rng, drive=rng.uniform(*drive), tone=rng.uniform(*tone))
 
 
-def make_hat(rng, open_=False, *, decay=None, band=(7000, 10000), tone=(9000, 12000)):
+def make_hat(rng, open_=False, *, decay=None, band=(7000, 10000), tone=(9000, 12000), drive=(0.8, 1.6)):
     if decay is None:
         decay = (0.22, 0.5) if open_ else (0.05, 0.12)
     n = int(rng.uniform(*decay) * SR)
@@ -157,7 +157,7 @@ def make_hat(rng, open_=False, *, decay=None, band=(7000, 10000), tone=(9000, 12
     hiss = fft_filter(noise(n, rng), highpass(rng.uniform(6000, 9000)))
     x = metal * rng.uniform(0.6, 1.0) + hiss * rng.uniform(0.4, 0.9)
     x *= exp_env(n, rng.uniform(0.16, 0.42) if open_ else rng.uniform(0.02, 0.05))
-    return lofi_chain(x, rng, drive=rng.uniform(0.8, 1.6), tone=rng.uniform(*tone), hp=4000)
+    return lofi_chain(x, rng, drive=rng.uniform(*drive), tone=rng.uniform(*tone), hp=4000)
 
 
 def make_rim(rng):
@@ -220,10 +220,13 @@ def make_crash(rng):
 
 RECIPES = {
     # --- the original kit -------------------------------------------------
-    "kick": (lambda r: make_kick(r), 24),
-    "snare": (lambda r: make_snare(r), 24),
-    "hat": (lambda r: make_hat(r, False), 24),
-    "openhat": (lambda r: make_hat(r, True), 16),
+    # A lofi kick is round and dusty, not a modern click: narrow tuning, a
+    # low-passed top and light saturation, so the pool stays one character.
+    "kick": (lambda r: make_kick(r, f_lo=46, f_hi=56, decay=(0.3, 0.52), tone=(1300, 2400),
+                                 drive=(1.3, 2.2), click=(0.04, 0.22), punch=(2.2, 3.6)), 24),
+    "snare": (lambda r: make_snare(r, tune=(168, 218), tone=(5000, 7600), drive=(1.0, 1.8)), 24),
+    "hat": (lambda r: make_hat(r, False, band=(6800, 9200), tone=(6800, 9800), drive=(0.6, 1.1)), 24),
+    "openhat": (lambda r: make_hat(r, True, band=(5200, 7600), tone=(7000, 10000), drive=(0.6, 1.1)), 16),
     "rim": (make_rim, 16),
     "shaker": (make_shaker, 16),
     "tom": (make_tom, 16),
