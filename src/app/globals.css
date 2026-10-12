@@ -399,3 +399,17 @@
     translate: -50% 0;
   }
 }
+
+@layer utilities {
+  /*
+   * Keep the studio clear of notches, rounded corners and the home indicator.
+   * The viewport is declared `viewport-fit: cover`, so on a phone the top bar
+   * and bottom controls would otherwise sit under the system UI.
+   */
+  .app-safe {
+    padding-top: env(safe-area-inset-top);
+    padding-right: env(safe-area-inset-right);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+  }
+}
