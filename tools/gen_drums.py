@@ -220,35 +220,41 @@ def make_crash(rng):
 
 RECIPES = {
     # --- the original kit -------------------------------------------------
-    # A lofi kick is round and dusty, not a modern click: narrow tuning, a
-    # low-passed top and light saturation, so the pool stays one character.
-    "kick": (lambda r: make_kick(r, f_lo=46, f_hi=56, decay=(0.3, 0.52), tone=(1300, 2400),
-                                 drive=(1.3, 2.2), click=(0.04, 0.22), punch=(2.2, 3.6)), 24),
-    "snare": (lambda r: make_snare(r, tune=(168, 218), tone=(5000, 7600), drive=(1.0, 1.8)), 24),
-    "hat": (lambda r: make_hat(r, False, band=(6800, 9200), tone=(6800, 9800), drive=(0.6, 1.1)), 24),
-    "openhat": (lambda r: make_hat(r, True, band=(5200, 7600), tone=(7000, 10000), drive=(0.6, 1.1)), 16),
-    "rim": (make_rim, 16),
-    "shaker": (make_shaker, 16),
-    "tom": (make_tom, 16),
-    "clap": (make_clap, 16),
-    "crash": (make_crash, 12),
+    # A lofi kick is round and dusty, not a modern click: a low-passed top and
+    # light saturation. The ranges are wide enough that one generation gets a
+    # soft, long kick and the next a tighter, more driven one, while the pool
+    # still reads as one dusty character.
+    "kick": (lambda r: make_kick(r, f_lo=42, f_hi=62, decay=(0.24, 0.62), tone=(1150, 2600),
+                                 drive=(1.2, 2.5), click=(0.03, 0.3), punch=(2.0, 4.0)), 48),
+    "snare": (lambda r: make_snare(r, tune=(162, 238), decay=(0.16, 0.4), bp=(1150, 2500),
+                                   tone=(4800, 8200), drive=(1.0, 2.0)), 48),
+    "hat": (lambda r: make_hat(r, False, decay=(0.035, 0.16), band=(6400, 9800), tone=(6400, 10500),
+                               drive=(0.5, 1.2)), 48),
+    "openhat": (lambda r: make_hat(r, True, decay=(0.18, 0.7), band=(5000, 8000), tone=(7000, 10500),
+                                   drive=(0.5, 1.2)), 32),
+    "rim": (make_rim, 24),
+    "shaker": (lambda r: make_shaker(r, decay=(0.07, 0.24), hp=(4500, 9000), attack=(0.005, 0.025),
+                                     tone=(8500, 12500)), 32),
+    "tom": (lambda r: make_tom(r, f=(80, 185), decay=(0.18, 0.46)), 24),
+    "clap": (make_clap, 24),
+    "crash": (make_crash, 20),
     # --- new lofi drum voices --------------------------------------------
     # Deep Kick: lower, longer, rounder
-    "kick2": (lambda r: make_kick(r, f_lo=34, f_hi=44, decay=(0.4, 0.75), tone=(1100, 2100),
-                                  drive=(1.3, 2.4), click=(0.05, 0.25), punch=(2.0, 3.4)), 16),
+    "kick2": (lambda r: make_kick(r, f_lo=30, f_hi=46, decay=(0.4, 0.9), tone=(1050, 2100),
+                                  drive=(1.2, 2.5), click=(0.04, 0.26), punch=(1.9, 3.4)), 32),
     # Tape Kick: punchier and more saturated
-    "kick3": (lambda r: make_kick(r, f_lo=50, f_hi=64, decay=(0.22, 0.42), tone=(2200, 3600),
-                                  drive=(3.0, 5.0), click=(0.3, 0.7), punch=(3.0, 5.5)), 16),
+    "kick3": (lambda r: make_kick(r, f_lo=48, f_hi=68, decay=(0.2, 0.45), tone=(2200, 3800),
+                                  drive=(2.6, 5.2), click=(0.28, 0.72), punch=(3.0, 5.6)), 32),
     # Vinyl Snare: darker, longer body
-    "snare2": (lambda r: make_snare(r, tune=(165, 215), decay=(0.24, 0.42), bp=(1000, 1800),
-                                    tone=(5000, 7500), drive=(1.6, 2.6), body_mix=(0.9, 1.3)), 16),
+    "snare2": (lambda r: make_snare(r, tune=(158, 226), decay=(0.22, 0.5), bp=(950, 1850),
+                                    tone=(4800, 7800), drive=(1.5, 2.7), body_mix=(0.9, 1.35)), 32),
     # Airy Hat: longer, brighter, more noise
-    "hat2": (lambda r: make_hat(r, False, decay=(0.08, 0.2), band=(8500, 12000), tone=(11000, 14000)), 16),
+    "hat2": (lambda r: make_hat(r, False, decay=(0.07, 0.24), band=(8200, 12500), tone=(10500, 14000)), 32),
     # Long Open Hat: washes
-    "openhat2": (lambda r: make_hat(r, True, decay=(0.55, 0.95), band=(5000, 8000), tone=(9000, 12000)), 12),
+    "openhat2": (lambda r: make_hat(r, True, decay=(0.5, 1.1), band=(4800, 8200), tone=(8800, 12500)), 24),
     # Soft Shaker: darker, gentler
-    "shaker2": (lambda r: make_shaker(r, decay=(0.1, 0.22), hp=(3000, 5500), attack=(0.01, 0.03),
-                                      tone=(6500, 9500)), 12),
+    "shaker2": (lambda r: make_shaker(r, decay=(0.09, 0.26), hp=(3000, 5800), attack=(0.01, 0.032),
+                                      tone=(6200, 9800)), 24),
 }
 
 

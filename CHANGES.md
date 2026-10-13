@@ -1,6 +1,24 @@
 # What changed
 
-## Latest: no more music-box bells in lofi
+## Latest: more lofi drum one-shots, so every song sounds different
+
+The sampled kit had one narrow character per drum, so consecutive generations
+kept landing on the same-sounding kick, snare and hat. The pools are now much
+wider and roughly twice as deep.
+
+- The kit grew from **252 to 476 one-shots** (`public/drums`, ~6.7 MB).
+- **Kick, snare and hat pools doubled to 48 each**; open hats, rims, shakers,
+  toms, claps and crashes grew too, and the six extra voices (deep kick, tape
+  kick, vinyl snare, airy hat, long open hat, soft shaker) roughly doubled.
+- Each recipe's ranges were widened a little, so a pool now spans a real spread
+  of tunings, decays and brightness (e.g. kicks from 242–616 ms and snare
+  centroids from 1.1–2.5 kHz) instead of one narrow point.
+- Regenerate with `python3 tools/gen_drums.py public/drums`. The generator is
+  deterministic and per-variant seeded, so re-running reproduces the same files.
+
+Files: `tools/gen_drums.py`, `public/drums/`, `README.md`.
+
+## no more music-box bells in lofi
 
 The lofi kit listed `bell` (the "Music Box" voice) as its melodic instrument, so
 every generated lofi song put a toy bell on the melody. Bells belong to trap and
